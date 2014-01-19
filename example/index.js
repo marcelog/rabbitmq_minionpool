@@ -48,7 +48,7 @@ var options = {
     var task = data.queue;
     console.log('got task: %s', task);
     queue.shift(false);
-    callback(state);
+    callback(undefined, state);
   },
   poolEnd: function() {
     process.exit(0);

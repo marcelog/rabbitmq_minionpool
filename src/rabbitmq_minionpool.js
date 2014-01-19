@@ -38,26 +38,30 @@ function RabbitMqMinionPool(options) {
   }
 
   options.minionStart = function(callback) {
-    superMinionStart(function(state) {
-      state.connection = amqpMod.createConnection(self.amqpConfig);
-      state.connection.on('error', function(what) {
-        options.logger('General Error: ' + util.inspect(what));
-      });
-      state.connection.on('ready', function() {
-        Step(
-          function workersExchange() {
-            self.createWorkersExchange(state.connection, exchangeName, this);
-          },
-          function workersRetryExchange(workersExchange) {
-            state.exchange = workersExchange;
-            self.createWorkersRetryExchange(state.connection, exchangeName, this);
-          },
-          function done(workersRetryExchange) {
-            state.exchangeRetry = workersRetryExchange;
-            callback(state);
-          }
-        );
-      });
+    superMinionStart(function(err, state) {
+      if(err) {
+        callback(err, state);
+      } else {
+        state.connection = amqpMod.createConnection(self.amqpConfig);
+        state.connection.on('error', function(what) {
+          options.logger('General Error: ' + util.inspect(what));
+        });
+        state.connection.on('ready', function() {
+          Step(
+            function workersExchange() {
+              self.createWorkersExchange(state.connection, exchangeName, this);
+            },
+            function workersRetryExchange(workersExchange) {
+              state.exchange = workersExchange;
+              self.createWorkersRetryExchange(state.connection, exchangeName, this);
+            },
+            function done(workersRetryExchange) {
+              state.exchangeRetry = workersRetryExchange;
+              callback(undefined, state);
+            }
+          );
+        });        
+      }
     });
   };
   options.minionEnd = function(state, callback) {
@@ -72,44 +76,48 @@ function RabbitMqMinionPool(options) {
     superTaskSourceEnd(state, callback);
   };
   options.taskSourceStart = function(callback) {
-    superTaskSourceStart(function(state) {
-      state.connection = amqpMod.createConnection(self.amqpConfig);
-      state.connection.on('error', function(what) {
-        options.logger('General Error: ' + util.inspect(what));
-      });
-      state.connection.on('ready', function() {
-        Step(
-          function workersExchange() {
-            self.createWorkersExchange(state.connection, exchangeName, this);
-          },
-          function workersRetryExchange(workersExchange) {
-            state.exchange = workersExchange;
-            self.createWorkersRetryExchange(state.connection, exchangeName, this);
-          },
-          function workersRetryQueue(workersRetryExchange) {
-            state.exchangeRetry = workersRetryExchange;
-            self.createRetryQueue(
-              state.connection, exchangeName, queueName, {}, this
-            );
-          },
-          function workersQueue(workersRetryQueue) {
-            state.queueRetry = workersRetryQueue;
-            self.createWorkerQueue(
-              state.connection, exchangeName, queueName, {}, this
-            );
-          },
-          function done(workersQueue) {
-            state.queue = workersQueue;
-            state.queue.subscribe({ack: true, prefetchCount: self.concurrency}, function(msg) {
-              self.injectTaskInternal({
-                queue: state.queue,
-                task: msg
+    superTaskSourceStart(function(err, state) {
+      if(err) {
+        callback(err, state);
+      } else {
+        state.connection = amqpMod.createConnection(self.amqpConfig);
+        state.connection.on('error', function(what) {
+          options.logger('General Error: ' + util.inspect(what));
+        });
+        state.connection.on('ready', function() {
+          Step(
+            function workersExchange() {
+              self.createWorkersExchange(state.connection, exchangeName, this);
+            },
+            function workersRetryExchange(workersExchange) {
+              state.exchange = workersExchange;
+              self.createWorkersRetryExchange(state.connection, exchangeName, this);
+            },
+            function workersRetryQueue(workersRetryExchange) {
+              state.exchangeRetry = workersRetryExchange;
+              self.createRetryQueue(
+                state.connection, exchangeName, queueName, {}, this
+              );
+            },
+            function workersQueue(workersRetryQueue) {
+              state.queueRetry = workersRetryQueue;
+              self.createWorkerQueue(
+                state.connection, exchangeName, queueName, {}, this
+              );
+            },
+            function done(workersQueue) {
+              state.queue = workersQueue;
+              state.queue.subscribe({ack: true, prefetchCount: self.concurrency}, function(msg) {
+                self.injectTaskInternal({
+                  queue: state.queue,
+                  task: msg
+                });
               });
-            });
-            callback(state);
-          }
-        );
-      });
+              callback(undefined, state);
+            }
+          );
+        });
+      }
     });
   }
   RabbitMqMinionPool.super_.call(this, options);
