@@ -216,7 +216,7 @@ RabbitMqMinionPool.prototype.publish = function(exchange, key, payload, callback
   var timeoutId = setTimeout(function() {
     cleanup();
     callback('not acked');
-  }, self.amqpConfig.publishAckTimeout);
+  }, self.mqOptions.publishAckTimeout);
   exchange.once('basic-nack', function(argsNack) {
     clearTimeout(timeoutId);
     cleanup();
