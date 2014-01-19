@@ -64,9 +64,10 @@ var options = {
   minionTaskHandler: function(data, state, callback) {
     var queue = data.queue;
     var task = data.queue;
+    var err = ...; // Signal errors this way
     console.log('got task: %s', task);
     queue.shift(false); // true would mean requeue (i.e: route to the dlx)
-    callback(state);
+    callback(err, state);
   },
   poolEnd: function() {
     process.exit(0);

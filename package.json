@@ -2,7 +2,7 @@
   "author": "Marcelo Gornstein <marcelog@gmail.com>",
   "name": "rabbitmq_minionpool",
   "description": "A RabbitMQ minionpool",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "homepage": "https://github.com/marcelog/rabbitmq_minionpool",
   "keywords": [
     "worker", "pool", "task", "consumer", "rabbitmq"
