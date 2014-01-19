@@ -1,0 +1,21 @@
+{
+  "author": "Marcelo Gornstein <marcelog@gmail.com>",
+  "name": "rabbitmq_minionpool",
+  "description": "A RabbitMQ minionpool",
+  "version": "0.0.1",
+  "homepage": "https://github.com/marcelog/rabbitmq_minionpool",
+  "keywords": [
+    "worker", "pool", "task", "consumer", "rabbitmq"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/marcelog/rabbitmq_minionpool.git"
+  },
+  "main": "src/rabbitmq_minionpool",
+  "dependencies": {
+    "minionpool": "0.0.8",
+    "amqp": "0.1.8",
+    "step": "0.0.5"
+  },
+  "devDependencies": {}
+}
