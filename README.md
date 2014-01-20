@@ -1,6 +1,6 @@
 # About
 
-**rabbitmq_minionpool** is a specialized [minionpool](https://github.com/marcelog/rabbitmq_minionpool) that will let you process tasks coming in
+**rabbitmq_minionpool** is a specialized [minionpool](https://github.com/marcelog/minionpool) that will let you process tasks coming in
 via RabbitMQ (it uses de [node-amqp](https://github.com/postwait/node-amqp) library).
 
 # How it works
