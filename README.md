@@ -61,9 +61,9 @@ var options = {
     routingKey: 'myWorkers',
     retryTimeout: 20000
   },
-  minionTaskHandler: function(data, state, callback) {
-    var queue = data.queue;
-    var task = data.queue;
+  minionTaskHandler: function(msg, state, callback) {
+    var queue = msg.queue;
+    var task = JSON.parse(msg.task.data.toString('utf-8'));
     var err = ...; // Signal errors this way
     console.log('got task: %s', task);
     queue.shift(false); // true would mean requeue (i.e: route to the dlx)
