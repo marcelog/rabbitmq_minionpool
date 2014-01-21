@@ -38,16 +38,16 @@ var options = {
     reconnectBackoffStrategy: 'linear',
     reconnectExponentialLimit: 120000,
     reconnectBackoffTime: 1000,
-    exchangeName: 'workers',  // Will also create workers.retry
-    queueName: 'myWorkers',   // Will also create myWorkers.retry
-    routingKey: 'myWorkers',
+    exchangeName: 'myWorkers',  // Will also create myWorkers.retry
+    queueName: 'do_something',  // Will also create do_something.retry
+    routingKey: 'do_something',
     retryTimeout: 20000
   },
   minionTaskHandler: function(data, state, callback) {
     var queue = data.queue;
     var task = data.queue;
     console.log('got task: %s', task);
-    queue.shift(false);
+    queue.shift(true, false);
     callback(undefined, state);
   },
   poolEnd: function() {
