@@ -156,9 +156,10 @@ RabbitMqMinionPool.prototype.createRetryQueue = function(
 ) {
   var args = {};
   var name = this.retryNameFor(queueName);
+  var self = this;
   args['x-dead-letter-exchange'] = exchangeName;
   args['x-message-ttl'] = this.mqOptions.retryTimeout;
-  this.createQueue(connection, name, args, exchangeName, name, callback);
+  this.createQueue(connection, name, args, exchangeName, queueName, callback);
 };
 
 RabbitMqMinionPool.prototype.createQueue = function(
@@ -168,7 +169,6 @@ RabbitMqMinionPool.prototype.createQueue = function(
   var self = this;
   connection.queue(queueName, options, function(queue) {
     queue.bind(exchangeName, key);
-    this.workerQueue = queue;
     if(self.debug) {
       self.debugMsg('Queue: ' + queueName + ' binded to: ' + key);
     }
