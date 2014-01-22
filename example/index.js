@@ -45,8 +45,8 @@ var options = {
   },
   minionTaskHandler: function(data, state, callback) {
     var queue = data.queue;
-    var task = data.queue;
-    console.log('got task: %s', task);
+    var task = data.task;
+    console.log('got task: %s', util.inspect(task));
     queue.shift(true, false);
     callback(undefined, state);
   },
