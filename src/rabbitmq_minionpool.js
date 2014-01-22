@@ -159,7 +159,7 @@ RabbitMqMinionPool.prototype.createRetryQueue = function(
   var self = this;
   args['x-dead-letter-exchange'] = exchangeName;
   args['x-message-ttl'] = this.mqOptions.retryTimeout;
-  this.createQueue(connection, name, args, exchangeName, queueName, callback);
+  this.createQueue(connection, name, args, this.retryNameFor(exchangeName), queueName, callback);
 };
 
 RabbitMqMinionPool.prototype.createQueue = function(
