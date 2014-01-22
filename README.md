@@ -62,14 +62,15 @@ var options = {
     retryTimeout: 20000
   },
   minionTaskHandler: function(msg, state, callback) {
+    var payload = msg.payload;
+    var headers = msg.headers;
+    var deliveryInfo = msg.deliveryInfo;
+    var message = msg.message;
     var queue = msg.queue;
-    var task = JSON.parse(msg.task.data.toString('utf-8'));
-    var err = ...; // Signal errors this way
-    console.log('got task: %s', task);
-    // reject, don't requeue (i.e: route to the dlx).
-    // See the amqp-node doc for more info
-    queue.shift(true, false);
-    callback(err, state);
+    console.log('got task: %s', util.inspect(payload));
+    // See the node-amqp doc for more info.
+    message.reject(); // or message.acknowledge();
+    callback(undefined, state);
   },
   poolEnd: function() {
     process.exit(0);

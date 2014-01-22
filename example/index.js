@@ -43,11 +43,15 @@ var options = {
     routingKey: 'do_something',
     retryTimeout: 20000
   },
-  minionTaskHandler: function(data, state, callback) {
-    var queue = data.queue;
-    var task = data.task;
-    console.log('got task: %s', util.inspect(task));
-    queue.shift(true, false);
+  minionTaskHandler: function(msg, state, callback) {
+    var payload = msg.payload;
+    var headers = msg.headers;
+    var deliveryInfo = msg.deliveryInfo;
+    var message = msg.message;
+    var queue = msg.queue;
+    console.log('got task: %s', util.inspect(payload));
+    // See the node-amqp doc for more info.
+    message.reject(); // or message.acknowledge();
     callback(undefined, state);
   },
   poolEnd: function() {

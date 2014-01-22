@@ -107,12 +107,18 @@ function RabbitMqMinionPool(options) {
             },
             function done(workersQueue) {
               state.queue = workersQueue;
-              state.queue.subscribe({ack: true, prefetchCount: self.concurrency}, function(msg) {
-                self.injectTaskInternal({
-                  queue: state.queue,
-                  task: msg
-                });
-              });
+              state.queue.subscribe(
+                {ack: true, prefetchCount: self.concurrency},
+               function(payload, headers, deliveryInfo, message) {
+                  self.injectTaskInternal({
+                    payload: payload,
+                    headers: headers,
+                    deliveryInfo: deliveryInfo,
+                    message: message,
+                    queue: workersQueue
+                  });
+                }
+              );
               callback(undefined, state);
             }
           );
@@ -127,7 +133,6 @@ util.inherits(RabbitMqMinionPool, minionPoolMod.MinionPool);
 
 RabbitMqMinionPool.prototype.injectTaskInternal = function(data) {
   var self = this;
-  var queue = data.queue;
   self.injectTask(data);
 };
 
