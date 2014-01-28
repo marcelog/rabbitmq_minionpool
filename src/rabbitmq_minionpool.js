@@ -1,7 +1,7 @@
 var minionPoolMod = require('minionpool');
 var amqpMod = require('amqp');
 var util = require('util');
-var Step = require('Step');
+var Step = require('step');
 
 function RabbitMqMinionPool(options) {
   var self = this;
