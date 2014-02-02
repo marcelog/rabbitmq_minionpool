@@ -5,7 +5,6 @@ var Step = require('step');
 
 function RabbitMqMinionPool(options) {
   var self = this;
-
   var superTaskSourceStart = this.dummyTaskSourceStart;
   var superMinionStart = this.dummyMinionStart;
   var superMinionEnd = this.dummyMinionEnd;
@@ -17,6 +16,10 @@ function RabbitMqMinionPool(options) {
   // Tasks wont be get by polling, but by someone calling injectTask() on the pool
   options.taskSourceNext = undefined;
   options.mqOptions.defaultExchangeName = options.mqOptions.exchangeName;
+  var routingKey = options.mqOptions.routingKey;
+  if(routingKey === undefined) {
+    options.mqOptions.queueName;
+  }
 
   var exchangeName = options.mqOptions.exchangeName;
   var queueName = options.mqOptions.queueName;
@@ -96,13 +99,13 @@ function RabbitMqMinionPool(options) {
             function workersRetryQueue(workersRetryExchange) {
               state.exchangeRetry = workersRetryExchange;
               self.createRetryQueue(
-                state.connection, exchangeName, queueName, {}, this
+                state.connection, exchangeName, queueName, routingKey, {}, this
               );
             },
             function workersQueue(workersRetryQueue) {
               state.queueRetry = workersRetryQueue;
               self.createWorkerQueue(
-                state.connection, exchangeName, queueName, {}, this
+                state.connection, exchangeName, queueName, routingKey, {}, this
               );
             },
             function done(workersQueue) {
@@ -148,23 +151,28 @@ RabbitMqMinionPool.prototype.createWorkersRetryExchange = function(connection, n
 };
 
 RabbitMqMinionPool.prototype.createWorkerQueue = function(
-  connection, exchangeName, queueName, args, callback
+  connection, exchangeName, queueName, key, args, callback
 ) {
   // Nacks will send these to the dlx.
   var args = {};
   args['x-dead-letter-exchange'] = this.retryNameFor(exchangeName);
-  this.createQueue(connection, queueName, args, exchangeName, queueName, callback);
+  // we want a different retry queue so retry operations for 'this' consumer
+  // wont reach others.
+  args['x-dead-letter-routing-key'] = this.retryNameFor(queueName);
+  this.createQueue(connection, queueName, args, exchangeName, key, callback);
 };
 
 RabbitMqMinionPool.prototype.createRetryQueue = function(
-  connection, exchangeName, queueName, args, callback
+  connection, exchangeName, queueName, key, args, callback
 ) {
   var args = {};
   var name = this.retryNameFor(queueName);
   var self = this;
   args['x-dead-letter-exchange'] = exchangeName;
+  // send retry operations no to 'key', but to 'queueName'
+  args['x-dead-letter-routing-key'] = queueName;
   args['x-message-ttl'] = this.mqOptions.retryTimeout;
-  this.createQueue(connection, name, args, this.retryNameFor(exchangeName), queueName, callback);
+  this.createQueue(connection, name, args, this.retryNameFor(exchangeName), this.retryNameFor(queueName), callback);
 };
 
 RabbitMqMinionPool.prototype.createQueue = function(
@@ -173,7 +181,13 @@ RabbitMqMinionPool.prototype.createQueue = function(
   var options = this.queueOptions(args);
   var self = this;
   connection.queue(queueName, options, function(queue) {
+    /*
+     * We bind to the routing key so we can consume messages from the needed
+     * routingKey, but also directed to our own queue name (useful to send retried
+     * operations to the right consumer).
+     */
     queue.bind(exchangeName, key);
+    queue.bind(exchangeName, queueName);
     if(self.debug) {
       self.debugMsg('Queue: ' + queueName + ' binded to: ' + key);
     }

@@ -7,7 +7,7 @@ via RabbitMQ (it uses de [node-amqp](https://github.com/postwait/node-amqp) libr
 You need to provide some key pieces of information:
  * An exchange name (the "worker's exchange" from now on)
  * A queue name (the "worker's queue" from now on)
- * A routing key
+ * A routing key (will default to the queue name if missing)
  * A retry timeout for failed operations.
 
 When you create a **rabbitmq_minionpool**, 2 exchanges are created in the
@@ -25,11 +25,18 @@ Also, some queues are created:
  to the given routing key. The pool will subscribe to this queue to get messages.
  This queue is created with the arguments:
   * x-dead-letter-exchange = exchangeName.retry
+  * x-dead-letter-routing-key = queueName.retry
 
  * Another queue in the dead letter exchange, so failed operations can get
  there. This queue is created with the arguments:
   * x-dead-letter-exchange = exchangeName
+  * x-dead-letter-routing-key = queueName
   * x-message-ttl = retryTimeout
+
+Both queue will subscribe to 'routingKey' but also to their respectively queueName. So
+they will get messages directed to 'routingKey' but will also get dead-lettered
+messages (and these messages will reach the correct consumer, the one that 
+rejected them.)
 
 When messages are routed to the specified worker's queue, the minionpool will 
 dispatch them to the minions. Each minion will get access to the message and the
@@ -58,7 +65,7 @@ var options = {
     reconnectBackoffTime: 1000,
     exchangeName: 'workers',  // Will also create workers.retry
     queueName: 'myWorkers',   // Will also create myWorkers.retry
-    routingKey: 'myWorkers',
+    routingKey: 'myWorkers',  // Optional. Equals to queueName if missing
     retryTimeout: 20000
   },
   minionTaskHandler: function(msg, state, callback) {
