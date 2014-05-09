@@ -16,6 +16,7 @@ function RabbitMqMinionPool(options) {
   // Tasks wont be get by polling, but by someone calling injectTask() on the pool
   options.taskSourceNext = undefined;
   options.mqOptions.defaultExchangeName = options.mqOptions.exchangeName;
+  self.amqpConfig = options.mqOptions;
   var routingKey = options.mqOptions.routingKey;
   if(routingKey === undefined) {
     options.mqOptions.queueName;
